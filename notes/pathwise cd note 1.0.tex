@@ -1,0 +1,112 @@
+\documentclass[12pt]{article}
+\usepackage{anysize}
+\marginsize{1.2cm}{1.4cm}{.4cm}{1cm}
+
+\usepackage[normalem]{ulem}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage[shortlabels]{enumitem}
+\usepackage{graphicx}
+\usepackage{listings}
+\lstset{
+  basicstyle=\ttfamily,
+  mathescape
+}
+
+\newcommand{\by}{\mathbf{y}}
+\newcommand{\bY}{\mathbf{Y}}
+\newcommand{\bX}{\mathbf{X}}
+\newcommand{\btheta}{\mathbf{\theta}}
+\newcommand{\bI}{\mathbf{I}}
+\newcommand{\bA}{\mathbf{A}}
+\newcommand{\bB}{\mathbf{B}}
+\newcommand{\bW}{\mathbf{W}}
+
+\newcommand{\thh}{\hat{\theta}}
+\newcommand{\sgn}{\text{ sign}}
+
+\begin{document}
+
+\noindent Ian Dardik \\
+\noindent CS6140 \\
+\noindent Pathwise Coordinate Descent
+
+\section{Pathwise Coordinate Descent}
+Pathwise coordinate descent is a convenient algorithm for implementing regression algorithms such as LASSO and Elastic Net.  Pathwise coordinate descent works by holding tuning parameters ($\lambda, \alpha$) constant and optimizing each parameter individually\cite{ht}.  Given data $\bX$, response variable $\bY$, and tuning parameters $\lambda$ and $\alpha$, we can find the solution to an optimization problem
+	$$\mathbf{\thh} = \underset{\theta}{\text{argmin}}\{O(\theta,X,Y,\lambda,\alpha)\}$$
+by considering each parameter $j$ as an individual optimization problem where we hold all other parameters $k \ne j$ constant.  We can find $\thh_j$ by finding the stationary points of a convex $O$ with respect to $\theta_j$:
+	$$\thh_j = \theta_j \text{ s.t. } \frac{\partial O}{\partial \theta_j} = 0$$
+
+In Pathwise Coordinate Descent we cycle through each parameter and make the appropriate update.  After each complete cycle, we check to see if the difference between the previous and the newly updated parameters is smaller than a given tolerance, and terminate if so.  
+
+
+\section{Standardized Data}
+We will consider the LASSO and the Elastic Net in the following sections.  In both regression problems we will assume that our data is standardized so that each data vector in our design matrix has mean 0 and variance 1.  Thus we can omit the intercept term as well in our regression, since the solution will be equal to the mean\cite{ht}.  
+
+
+\section{LASSO}
+LASSO regression solves the following optimization problem for each $\theta_j$\cite{ht}:
+	$$\thh_j = \underset{\theta}{\text{argmin}}\left\{ \frac{1}{2} \sum\limits_{i=1}^N \left(Y_i - \sum\limits_{k=1}^px_{ik}\theta_k \right)^2 + \lambda \sum\limits_{k=1}^p|\theta_k| \right\}$$
+
+Where $\lambda \geq 0$ is a tuning parameter.  Let $O$ be the formula we are optimizing above.  We can solve for $\theta_j$ by finding the stationary points of $O$:
+\begin{equation}\begin{split}
+	\frac{\partial O}{\partial \theta_j}
+		& = -\sum\limits_{i=1}^N X_{ij}(Y_i - X_{ij}\theta_j - \sum\limits_{k \ne j}^p X_{ik}\theta_k) + \lambda \sgn(\theta_j) \\
+		& = -\sum\limits_{i=1}^N X_{ij}(Y_i - \sum\limits_{k \ne j}^p X_{ik}\theta_k) + \sum\limits_{i=1}^NX_{ij}^2\theta_j + \lambda \sgn(\theta_j) \\
+		& = -\sum\limits_{i=1}^N X_{ij}(Y_i - \sum\limits_{k \ne j}^p X_{ik}\theta_k) +(N-1)\theta_j + \lambda \sgn(\theta_j) \\
+\end{split}\end{equation}
+
+The last step follows from the fact that our data is standardized, and thus $\sum\limits_{i=1}^NX_{ij}^2 = N-1$.  \\
+
+Set $\frac{\partial O}{\partial \theta_j}=0$ and, for convenience, let $Q = \sum\limits_{i=1}^N X_{ij}(Y_i - \sum\limits_{k \ne j}^p X_{ik}\theta_k)$ and and we get:
+	$$(N-1)\theta_j + \lambda\sgn(\theta_j) = Q$$
+
+To solve for $\theta_j$ notice that when $\theta_j \geq 0$, $\theta_j=\frac{Q-\lambda}{N-1}$ so $Q \geq \lambda$.  However when $\theta_j \leq 0$, $\theta_j=\frac{Q+\lambda}{N-1}$ so $Q \leq -\lambda$.  It is clear that $|Q| \geq \lambda$; also notice from above that $\theta_j \geq 0$ iff $Q \geq 0$ and $\theta_j \leq 0$ iff $Q \leq 0$.  Therefore, we can write the solution for $\theta_j$ as:
+	$$\theta_j = \frac{\sgn(Q)(|Q|-\lambda)_+}{N-1}$$
+
+Where $()_+$ is the soft-thresholding operator, and guarantees our restriction $|Q| \geq \lambda$.  If we let\cite{ht} $S(t) = \sgn(t)(|t|-\lambda)$ then our final solution is:
+	$$\theta_j = S\left(\sum\limits_{i=1}^N X_{ij}(Y_i - \sum\limits_{k \ne j}^p X_{ik}\theta_k)\right)/(N-1)$$
+
+Notice this yields a solution nearly identical to Elements of Statistical Learning\cite{ht}; the difference is that we divide by $N-1$ and I'm not sure why they omit this in the book.  
+
+
+\section{Elastic Net}
+The Elastic Net uses the tuning parameter $\alpha \in [0,1]$ to compromise between Ridge and Lasso penalization.  It solves the following optimization problem:
+	$$\thh_j = \underset{\theta}{\text{argmin}}\left\{ \frac{1}{2} \sum\limits_{i=1}^N \left(Y_i - \sum\limits_{k=1}^px_{ik}\theta_k \right)^2 + \lambda \sum\limits_{k=1}^p \left(\alpha\theta_k^2 + (1-\alpha)|\theta_k| \right) \right\}$$
+
+This problem is very similar to LASSO above so I will write slightly more concisely here.  Let $O$ be the formula we are optimizing above.  We can solve for $\theta_j$ by finding the stationary points of $O$:
+\begin{equation}\begin{split}
+	\frac{\partial O}{\partial \theta_j}
+		& = -\sum\limits_{i=1}^N X_{ij}(Y_i - \sum\limits_{k \ne j}^p X_{ik}\theta_k) +(N-1)\theta_j + 2\lambda\alpha\theta_j + \lambda(1-\alpha)\sgn(\theta_j) \\
+\end{split}\end{equation}
+
+Set $\frac{\partial O}{\partial \theta_j}=0$ and, for convenience, let $Q = \sum\limits_{i=1}^N X_{ij}(Y_i - \sum\limits_{k \ne j}^p X_{ik}\theta_k)$, $A=(N-1)+2\lambda\alpha$, and $B=\lambda(1-\alpha)$ and and we get:
+	$$A\theta_j + B\sgn(\theta_j) = Q$$
+
+Notice that since $A \geq 0$ and $B \geq 0$, we can use the same two case logic from the LASSO section, yielding the solution:
+	$$\theta_j = \frac{\sgn(Q)(|Q|-B)_+}{A}$$
+
+If we define $S_{en}(t)= \sgn(t)(|t|-\lambda(1-\alpha))$ then our final solution is:
+	$$\theta_j = S_{en}\left(\sum\limits_{i=1}^N X_{ij}(Y_i - \sum\limits_{k \ne j}^p X_{ik}\theta_k)\right)/\left((N-1)+2\lambda\alpha\right)$$
+
+\begin{thebibliography}{9}
+\bibitem{ht} 
+Trevor Hastie, Robert Tibshirani, and Jerome Friedman,
+The Elements of Statistical Learning 2nd Edition
+\end{thebibliography}
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
