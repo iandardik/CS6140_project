@@ -1,0 +1,83 @@
+\documentclass[12pt]{article}
+\usepackage{anysize}
+\marginsize{1.2cm}{1.4cm}{.4cm}{1cm}
+
+\usepackage[normalem]{ulem}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage[shortlabels]{enumitem}
+\usepackage{graphicx}
+\usepackage{listings}
+\lstset{
+  basicstyle=\ttfamily,
+  mathescape
+}
+
+\newcommand{\by}{\mathbf{y}}
+\newcommand{\bY}{\mathbf{Y}}
+\newcommand{\bX}{\mathbf{X}}
+\newcommand{\btheta}{\mathbf{\theta}}
+\newcommand{\bI}{\mathbf{I}}
+\newcommand{\bA}{\mathbf{A}}
+\newcommand{\bB}{\mathbf{B}}
+\newcommand{\bW}{\mathbf{W}}
+
+\newcommand{\thh}{\hat{\theta}}
+\newcommand{\sgn}{\text{ sign}}
+
+\begin{document}
+
+\noindent Ian Dardik \\
+\noindent CS6140 \\
+\noindent Bayesian Approach to Linear Regression
+
+\section{MAP Estimation}
+We can build a discriminative model by maximizing $P(\theta|X,Y)$, i.e. by maximizing the likleihood that our model $\theta$ fit the given data $X,Y$.  However, we can use a generative approach called Maximum a Posteriori to view the problem through a new lens.  We begin by transforming the likelihood:
+	\begin{equation}\begin{split}
+		P(\theta|X,Y) 
+			& = \frac{P(\theta,X,Y)}{P(X,Y)} \\
+			& = \left(\frac{P(\theta,X,Y)}{P(\theta,X)}\right) \left(\frac{P(\theta,X)}{P(X)}\right) \left(\frac{P(X)}{P(X,Y)}\right) \\
+			& = \frac{P(Y|X,\theta)P(\theta|X)}{P(Y|X)} \\
+	\end{split}\end{equation}
+
+In many cases we can assume that [the data is fixed?] and therefore $P(\theta|X)=P(\theta)$ \cite{ovgen}.  Therefore
+	$$P(\theta|X,Y)=  \frac{P(Y|X,\theta)P(\theta)}{P(Y|X)}$$
+
+We can maximize the log likleihood, notice that $P(Y|X)$ disapears because it's not dependent on $\theta$:
+	$$\max_\theta \left\{ \log P(Y|X,\theta) + \log P(\theta) \right\}$$
+
+We assume assume our data is independent, and that $Y|X,\theta \sim \mathcal{N}(X'\theta, \sigma^2)$, and hence $P(Y|X,\theta) = \prod\limits_i \frac{1}{\sigma\sqrt{2\pi}} e^{-\frac{1}{2}\left( \frac{Y_i-X_i'\theta}{\sigma} \right)^2}$.  We have many options for $P(\theta)$, we explore two below:
+\begin{enumerate}
+	\item $\theta \sim \mathcal{N}(0,\frac{1}{\lambda}I)$, then:
+		$$\max_\theta \left\{ \sum\limits_i (Y_i-X_i'\theta)^2 + \lambda\theta'\theta \right\}$$
+		Which is exactly the ridge solution.  
+	\item $\theta \sim \text{Laplace}(0,\frac{1}{\lambda}I)$, then:
+		$$\max_\theta \left\{ \sum\limits_i (Y_i-X_i'\theta)^2 + \lambda \sum\limits_{j=1}^P |\theta_j| \right\}$$
+		Which is exactly the LASSO solution.  
+\end{enumerate}
+
+\begin{thebibliography}{9}
+\bibitem{ht} 
+Trevor Hastie, Robert Tibshirani, and Jerome Friedman,
+The Elements of Statistical Learning 2nd Edition
+
+\bibitem{ovgen}
+Olga Vitek
+Generative Models, class slides
+\end{thebibliography}
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
