@@ -1,0 +1,144 @@
+\documentclass[11pt]{article}
+\usepackage{anysize}
+\marginsize{1.2cm}{1.4cm}{.4cm}{1cm}
+
+\usepackage[normalem]{ulem}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage[shortlabels]{enumitem}
+\usepackage{graphicx}
+\usepackage{listings}
+\lstset{
+  basicstyle=\ttfamily,
+  mathescape
+}
+
+\setlength{\parindent}{0pt}
+
+\newcommand{\by}{\mathbf{y}}
+\newcommand{\bY}{\mathbf{Y}}
+\newcommand{\bX}{\mathbf{X}}
+\newcommand{\btheta}{\mathbf{\theta}}
+\newcommand{\bI}{\mathbf{I}}
+\newcommand{\bA}{\mathbf{A}}
+\newcommand{\bB}{\mathbf{B}}
+\newcommand{\bW}{\mathbf{W}}
+
+\newcommand{\thh}{\hat{\theta}}
+\newcommand{\sgn}{\text{ sign}}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+\begin{document}
+
+Ian Dardik \\
+Heeru Ahuja \\
+CS6140 \\
+Exploring Regularization Techniques for Small Data Sets
+
+\section{Introduction}
+The focus of this paper will be to explore regularization techniques to improve descriminative modeling on small data sets.  Ordinary Least Squares (OLS) is a common technique for devising a linear regression model, however it becomes numerically unstable as the number of samples decrease, and has no solution when the number of parameters exceed the sample size.  Regularization techniques offer a solution to stabilize our solution and reduce the variance at the expense of introducing bias.  Each regularization technique that we consider is formulated as an optimization problem that minimizes an objective function $J$ of the form:
+	$$\thh = \argmin\limits_\theta J(\theta) =\argmin\limits_\theta \sum\limits_{i=1}^N L(\theta) + \sum\limits_{i=1}^P R(\theta)$$
+
+Where $L(\theta)$ is the loss function and $R(\theta)$ is the regularization rule.  Many of the regularization techniques we discuss do not have a closed analytical solution, so we will consider two algorithms for numerically arriving at a solution: Batch Gradient Descent and Pathwise Coordinate Descent.  We will present our methods from the viewpoint of each algorithm since the two algorithms consider the optimization problem in different ways; we will show that both algorithms can be parameterized in a way that makes each regularization technique a small difference in algorithm inputs.  The regularization techniques that we consider are:
+\begin{itemize}
+	\item L1 penalty (LASSO)
+	\item L2 penalty (Ridge)
+	\item L$\frac{1}{2}$
+	\item Elastic Net
+	\item L2 with Soft-Thresholding
+\end{itemize}
+
+\section{Gradient Descent}
+Gradient Descent algorithms work by moving in the direction that the gradient of $\theta$ points, with distance scaled by a learning rate parameter $\alpha$.  The algorithm continuously updates it value for the parameter vector $\theta$ until convergence.  Gradients point towards local optima, so we clearly need to use convex objective functions to arrive at a gobally optimal solution in Gradient Descent.  Fortunately, computing the gradient of objective functions listed above is straightforward which makes Gradient Descent fairly simple to implement.  Notice that Gradient Descent works by computing the gradient; it does not itself solve an optimization problem, per se; since the algorithm is dependent only the gradient of the objective function, we can parameterize it based on the gradient.  
+
+\section{Pathwise Coordinate Descent}
+While Gradient Descent operates on the entire parameter vector at once, Pathwise Coordinate Descent (PCD) concentrates on each parameter individually.  Pathwise Coordinate Descent considers each parameter $\theta_j$ as its own optimization problem\cite{ht}:
+	$$\thh_j = \argmin\limits_{\theta_j} J(\theta)$$
+
+In each iteration of the PCD, we update each $\theta_j$ to be the solution to the individual optimization problem.  
+
+\subsection{Parameterizing the PCD Algorithm}
+Pathwise Coordinate Descent is parameterized by the objective function $J$ that it solves for each $\theta_j$.  However, for the universe of objective functions we consider in our project, we can parameterize the PCD algorithm by just two nonnegative parameters we call $A$ and $B$.  For each objective function we consider below, we will show that the solution to optimizing each $\theta_j$ takes the form:
+	$$\theta_j = S\left(\sum\limits_{i=1}^N X_{ij}(Y_i - \sum\limits_{k \ne j}^p X_{ik}\theta_k), B\right)/A$$
+
+Where we define\cite{ht} $S(t,B) = \sgn(t)(|t|-B)_+$, and $()_+$ is the soft-thresholding operator.  It follows that each algorithm reduces to the following parameterized form: $\text{pathwise\_cd}(A, B, X, Y)$.  In the following sections we will show how each of the objective functions we consider fit into this parameterization.  
+
+\subsection{LASSO}
+LASSO uses the L1 norm for a penalty:
+	$$\thh_j = \argmin\limits_{\theta_j} \frac{1}{2} \sum\limits_{i=1}^N \left(Y_i - \sum\limits_{k=1}^px_{ik}\theta_k \right)^2 + \lambda \sum\limits_{k=1}^p|\theta_k|$$
+
+Where $\lambda \geq 0$ is a tuning parameter.  Let $J$ be the objective function we want to optimize above.  We can solve for $\theta_j$ by finding the stationary points of $J$:
+\begin{equation}\begin{split}
+	\frac{\partial J}{\partial \theta_j}
+		& = -\sum\limits_{i=1}^N X_{ij}(Y_i - X_{ij}\theta_j - \sum\limits_{k \ne j}^p X_{ik}\theta_k) + \lambda \sgn(\theta_j) \\
+		& = -\sum\limits_{i=1}^N X_{ij}(Y_i - \sum\limits_{k \ne j}^p X_{ik}\theta_k) + \sum\limits_{i=1}^NX_{ij}^2\theta_j + \lambda \sgn(\theta_j) \\
+		& = -\sum\limits_{i=1}^N X_{ij}(Y_i - \sum\limits_{k \ne j}^p X_{ik}\theta_k) +(N-1)\theta_j + \lambda \sgn(\theta_j) \\
+\end{split}\end{equation}
+
+The last step follows from the fact that our data is standardized, and thus $\sum\limits_{i=1}^NX_{ij}^2 = N-1$.  \\
+
+Set $\frac{\partial J}{\partial \theta_j}=0$ and, for convenience, let $Q = \sum\limits_{i=1}^N X_{ij}(Y_i - \sum\limits_{k \ne j}^p X_{ik}\theta_k)$ and and we get:
+	$$(N-1)\theta_j + \lambda\sgn(\theta_j) = Q$$
+
+To solve for $\theta_j$ notice that when $\theta_j \geq 0$, $\theta_j=\frac{Q-\lambda}{N-1}$ so $Q \geq \lambda$.  However when $\theta_j \leq 0$, $\theta_j=\frac{Q+\lambda}{N-1}$ so $Q \leq -\lambda$.  Notice the following two properties: \\
+	\hspace*{1cm} (1) $|Q| \geq \lambda$ \\
+	\hspace*{1cm} (2) $\theta_j \geq 0$ iff $Q \geq 0$ and $\theta_j \leq 0$ iff $Q \leq 0$ \\
+
+Therefore, we can write the solution for $\theta_j$ as:
+	$$\theta_j = \frac{\sgn(Q)(|Q|-\lambda)_+}{N-1}$$
+
+Where the soft-thresholding operator guarantees property (1), while multiplying by $\sgn(Q)$ makes use of (and guarantees) property (2).  Recall from Section 2 that $S(t,B) = \sgn(t)(|t|-B)_+$, then our final solution is:
+	$$\theta_j = S\left(\sum\limits_{i=1}^N X_{ij}(Y_i - \sum\limits_{k \ne j}^p X_{ik}\theta_k), \lambda\right)/(N-1)$$
+
+Notice this yields a solution nearly identical to Elements of Statistical Learning\cite{ht}; the difference is that we divide by $N-1$ and I'm not sure why they omit this in the book.  \\
+
+Notice that the soft-thresholding parameter is $\lambda$; this explains why larger $\lambda$ values causes LASSO to 0 out more parameters.  It is now clear that LASSO performs subset selection due to the choice of regularization penalization \textit{and} algorithm.  
+
+Finally, it is clear that we can parameterize pathwise\_cd for the LASSO if we let $A=N-1$ and $B=\lambda$.  
+
+
+\subsection{Elastic Net}
+The Elastic Net uses the tuning parameter $\alpha \in [0,1]$ to compromise between Ridge and Lasso penalization.  It solves the following optimization problem:
+	$$\thh_j = \argmin\limits_{\theta_j} \frac{1}{2} \sum\limits_{i=1}^N \left(Y_i - \sum\limits_{k=1}^px_{ik}\theta_k \right)^2 + \lambda \sum\limits_{k=1}^p \left(\alpha\theta_k^2 + (1-\alpha)|\theta_k| \right)$$
+
+This math is very similar to LASSO above so we have left the details to the appendix.  Our final solution is:
+	$$\theta_j = S\left(\sum\limits_{i=1}^N X_{ij}(Y_i - \sum\limits_{k \ne j}^p X_{ik}\theta_k), B\right)/A$$
+
+Where $A=(N-1)+2\lambda\alpha$, and $B=\lambda(1-\alpha)$.  This equation is already in our desired form, and it is clear that we can parameterize pathwise\_cd for the Elastic Net for our choices of $A$ and $B$.  
+
+\subsection{Ridge}
+Ridge Regularization has a closed form analytical solution so it does not require an algorithm.  Nevertheless, we will discuss Ridge in the context of PCD to eventually understand why LASSO performs subset selection, while Ridge does not.  Ridge penalizes the L2 norm; we can simply use our solution for the Elastic Net with $\alpha=1$ for the Ridge solution.  This implies that $A=(N-1)+2\lambda$ and $B=0$, yielding:
+	$$\theta_j = S\left(\sum\limits_{i=1}^N X_{ij}(Y_i - \sum\limits_{k \ne j}^p X_{ik}\theta_k), 0\right)/(N-1+2\lambda)$$
+
+Notice that the soft-thresholding parameter is 0; this implies \textit{no} soft-thresholding will be applied for Ridge, regardless of the parameter $\lambda$.  Interestingly, $\lambda$ is used exclusively for soft-thresholding in LASSO (linear shrinkage with respect to $\lambda$), and exclusively for shrinking the parameters (inversely proportional shrinkage with respect to $\lambda$) in Ridge.  Clearly soft-thresholding is not needed in the Ridge solution at all; however--borrowing the idea from Nearest Shrunken Centroids--we can still apply soft-thresholding to make Ridge perform subset selection when run with PCD.  Given a tuning parameter $\gamma$:
+	$$\theta_j = S\left(\sum\limits_{i=1}^N X_{ij}(Y_i - \sum\limits_{k \ne j}^p X_{ik}\theta_k), \gamma\right)/(N-1+2\lambda)$$
+
+We can select the optimal values of $\lambda$ and $\gamma$ using cross-validation.  Ridge with ST is similar to elastic net because it shrinks the parameters both via soft-thresholding and by division.  However, while the amount of linear and inverse shrinkage in Elastic Net are both functions of $\lambda$, Ridge with ST tunes linear and inverse shrinkage completely separately.  It's easy to show that this idea is the solution to minimizing the objective function:
+	$$\thh_j = \argmin\limits_{\theta_j} \frac{1}{2} \sum\limits_{i=1}^N \left(Y_i - \sum\limits_{k=1}^px_{ik}\theta_k \right)^2 +\sum\limits_{k=1}^p \left|\lambda\theta_k^2 + \gamma\theta_k\right|$$
+
+We have included the derivation in the appendix.  We have generalized the regularization penalty to the absolute value of a polynomial of degree two, where the coefficients are $\lambda$ for the quadratic term, $\gamma$ for the linear term, and 0 for the constant term (the constant term clearly does not matter for the optimization problem).  Later in the paper we will discuss the implications and the impact that this approach (paired with cross-validation) has compared to the Elastic Net.  
+
+
+\section{Results}
+
+\begin{thebibliography}{9}
+\bibitem{ht} 
+Trevor Hastie, Robert Tibshirani, and Jerome Friedman,
+The Elements of Statistical Learning 2nd Edition
+\end{thebibliography}
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
