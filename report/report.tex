@@ -158,14 +158,174 @@ We have summarized the results of our experiment in the figures below.  In addit
 \captionof{figure}{Correlated Dataset Results}
 \end{center}
 
+
 \section{Discussion}
+First and foremost, it is clear that regularization is important when modeling data sets that have a small number of samples compared to parameters.  We noticed our algorithms performed far better as we applied regularization to stabilize our solutions; this is made clear by the range lambda values in the charts in the appendix; we simply did not consider lamba values of zero because numerical overflow happens in nearly every case.  Second, we found that implementing Pathwise Coordinate Descent is far tougher than we initially thought; Batch Gradient Descent and Cross-Validation were not as tough, but still required several hours fine tuning and debugging.  Despite the challenges we faced, our results show that our implementations perform similarly to the sklearn library implementation of LASSO, with our implementation outperforming the library in some cases.  Finally, it's tough to judge whether our ``custom" Ridge shrinkage methods worked well.  Our results here do look moderately promising, yet our data sets our small and more investigation is needed.  Furthermore, our data sets are sparse which tend to favor LASSO\cite{tib}, and likely other soft-thresholding methods that we have experimented with in this paper; our analysis would benefit from more diverse models, including models that make sure of a higher percentage of the available parameters.  
 
 
 \begin{thebibliography}{9}
-\bibitem{ht} 
+\bibitem{ht}
 Trevor Hastie, Robert Tibshirani, and Jerome Friedman,
 The Elements of Statistical Learning 2nd Edition
+
+\bibitem{tib}
+Tibshirani's paper
 \end{thebibliography}
+
+\section{Appendix}
+
+\subsection{Cross-Validation Training Results}
+\begin{center}
+% LASSO
+\includegraphics[scale=0.7]{charts/lasso_ortho_n_lt_p_err.PNG}
+\includegraphics[scale=0.7]{charts/lasso_ortho_n_lt_p_thetas.PNG}
+\captionof*{figure}{LASSO, $n<p$ orthogonal data set}
+
+\includegraphics[scale=0.7]{charts/lasso_ortho_n_eq_p_err.PNG}
+\includegraphics[scale=0.7]{charts/lasso_ortho_n_eq_p_thetas.PNG}
+\captionof*{figure}{LASSO, $n=p$ orthogonal data set}
+
+\includegraphics[scale=0.7]{charts/lasso_ortho_n_gt_p_err.PNG}
+\includegraphics[scale=0.7]{charts/lasso_ortho_n_gt_p_thetas.PNG}
+\captionof*{figure}{LASSO, $n>p$ orthogonal data set}
+
+\includegraphics[scale=0.7]{charts/lasso_corr_n_lt_p_err.PNG}
+\includegraphics[scale=0.7]{charts/lasso_corr_n_lt_p_thetas.PNG}
+\captionof*{figure}{LASSO, $n<p$ correlated data set}
+
+\includegraphics[scale=0.7]{charts/lasso_corr_n_eq_p_err.PNG}
+\includegraphics[scale=0.7]{charts/lasso_corr_n_eq_p_thetas.PNG}
+\captionof*{figure}{LASSO, $n=p$ correlated data set}
+
+\includegraphics[scale=0.7]{charts/lasso_corr_n_gt_p_err.PNG}
+\includegraphics[scale=0.7]{charts/lasso_corr_n_gt_p_thetas.PNG}
+\captionof*{figure}{LASSO, $n>p$ correlated data set}
+
+% Ridge w/ST
+\includegraphics[scale=0.7]{charts/ridge_st_ortho_n_lt_p_err.PNG}
+\includegraphics[scale=0.7]{charts/ridge_st_ortho_n_lt_p_thetas.PNG}
+\captionof*{figure}{Ridge with Soft-Thresholding, $n<p$ orthogonal data set}
+
+\includegraphics[scale=0.7]{charts/ridge_st_ortho_n_eq_p_err.PNG}
+\includegraphics[scale=0.7]{charts/ridge_st_ortho_n_eq_p_thetas.PNG}
+\captionof*{figure}{Ridge with Soft-Thresholding, $n=p$ orthogonal data set}
+
+\includegraphics[scale=0.7]{charts/ridge_st_ortho_n_gt_p_err.PNG}
+\includegraphics[scale=0.7]{charts/ridge_st_ortho_n_gt_p_thetas.PNG}
+\captionof*{figure}{Ridge with Soft-Thresholding, $n>p$ orthogonal data set}
+
+\includegraphics[scale=0.7]{charts/ridge_st_corr_n_lt_p_err.PNG}
+\includegraphics[scale=0.7]{charts/ridge_st_corr_n_lt_p_thetas.PNG}
+\captionof*{figure}{Ridge with Soft-Thresholding, $n<p$ correlated data set}
+
+\includegraphics[scale=0.7]{charts/ridge_st_corr_n_eq_p_err.PNG}
+\includegraphics[scale=0.7]{charts/ridge_st_corr_n_eq_p_thetas.PNG}
+\captionof*{figure}{Ridge with Soft-Thresholding, $n=p$ correlated data set}
+
+\includegraphics[scale=0.7]{charts/ridge_st_corr_n_gt_p_err.PNG}
+\includegraphics[scale=0.7]{charts/ridge_st_corr_n_gt_p_thetas.PNG}
+\captionof*{figure}{Ridge with Soft-Thresholding, $n>p$ correlated data set}
+
+% Ridge w/Q ST
+\includegraphics[scale=0.7]{charts/ridge_q_ortho_n_lt_p_err.PNG}
+\includegraphics[scale=0.7]{charts/ridge_q_ortho_n_lt_p_thetas.PNG}
+\captionof*{figure}{Ridge with Quadratic Soft-Thresholding, $n<p$ orthogonal data set}
+
+\includegraphics[scale=0.7]{charts/ridge_q_ortho_n_eq_p_err.PNG}
+\includegraphics[scale=0.7]{charts/ridge_q_ortho_n_eq_p_thetas.PNG}
+\captionof*{figure}{Ridge with Quadratic Soft-Thresholding, $n=p$ orthogonal data set}
+
+\includegraphics[scale=0.7]{charts/ridge_q_ortho_n_gt_p_err.PNG}
+\includegraphics[scale=0.7]{charts/ridge_q_ortho_n_gt_p_thetas.PNG}
+\captionof*{figure}{Ridge with Quadratic Soft-Thresholding, $n>p$ orthogonal data set}
+
+\includegraphics[scale=0.7]{charts/ridge_q_corr_n_lt_p_err.PNG}
+\includegraphics[scale=0.7]{charts/ridge_q_corr_n_lt_p_thetas.PNG}
+\captionof*{figure}{Ridge with Quadratic Soft-Thresholding, $n<p$ correlated data set}
+
+\includegraphics[scale=0.7]{charts/ridge_q_corr_n_eq_p_err.PNG}
+\includegraphics[scale=0.7]{charts/ridge_q_corr_n_eq_p_thetas.PNG}
+\captionof*{figure}{Ridge with Quadratic Soft-Thresholding, $n=p$ correlated data set}
+
+\includegraphics[scale=0.7]{charts/ridge_q_corr_n_gt_p_err.PNG}
+\includegraphics[scale=0.7]{charts/ridge_q_corr_n_gt_p_thetas.PNG}
+\captionof*{figure}{Ridge with Quadratic Soft-Thresholding, $n>p$ correlated data set}
+
+% Ridge w/Exp ST
+\includegraphics[scale=0.7]{charts/ridge_exp_ortho_n_lt_p_err.PNG}
+\includegraphics[scale=0.7]{charts/ridge_exp_ortho_n_lt_p_thetas.PNG}
+\captionof*{figure}{Ridge with Exponential Soft-Thresholding, $n<p$ orthogonal data set}
+
+\includegraphics[scale=0.7]{charts/ridge_exp_ortho_n_eq_p_err.PNG}
+\includegraphics[scale=0.7]{charts/ridge_exp_ortho_n_eq_p_thetas.PNG}
+\captionof*{figure}{Ridge with Exponential Soft-Thresholding, $n=p$ orthogonal data set}
+
+\includegraphics[scale=0.7]{charts/ridge_exp_ortho_n_gt_p_err.PNG}
+\includegraphics[scale=0.7]{charts/ridge_exp_ortho_n_gt_p_thetas.PNG}
+\captionof*{figure}{Ridge with Exponential Soft-Thresholding, $n>p$ orthogonal data set}
+
+\includegraphics[scale=0.7]{charts/ridge_exp_corr_n_lt_p_err.PNG}
+\includegraphics[scale=0.7]{charts/ridge_exp_corr_n_lt_p_thetas.PNG}
+\captionof*{figure}{Ridge with Exponential Soft-Thresholding, $n<p$ correlated data set}
+
+\includegraphics[scale=0.7]{charts/ridge_exp_corr_n_eq_p_err.PNG}
+\includegraphics[scale=0.7]{charts/ridge_exp_corr_n_eq_p_thetas.PNG}
+\captionof*{figure}{Ridge with Exponential Soft-Thresholding, $n=p$ correlated data set}
+
+\includegraphics[scale=0.7]{charts/ridge_exp_corr_n_gt_p_err.PNG}
+\includegraphics[scale=0.7]{charts/ridge_exp_corr_n_gt_p_thetas.PNG}
+\captionof*{figure}{Ridge with Exponential Soft-Thresholding, $n>p$ correlated data set}
+
+% Elastic Net
+\includegraphics[scale=0.7]{charts/en_ortho_n_lt_p_err.PNG}
+\includegraphics[scale=0.7]{charts/en_ortho_n_lt_p_thetas.PNG}
+\captionof*{figure}{Elastic Net, $n<p$ orthogonal data set}
+
+\includegraphics[scale=0.7]{charts/en_ortho_n_eq_p_err.PNG}
+\includegraphics[scale=0.7]{charts/en_ortho_n_eq_p_thetas.PNG}
+\captionof*{figure}{Elastic Net, $n=p$ orthogonal data set}
+
+\includegraphics[scale=0.7]{charts/en_ortho_n_gt_p_err.PNG}
+\includegraphics[scale=0.7]{charts/en_ortho_n_gt_p_thetas.PNG}
+\captionof*{figure}{Elastic Net, $n>p$ orthogonal data set}
+
+\includegraphics[scale=0.7]{charts/en_corr_n_lt_p_err.PNG}
+\includegraphics[scale=0.7]{charts/en_corr_n_lt_p_thetas.PNG}
+\captionof*{figure}{Elastic Net, $n<p$ correlated data set}
+
+\includegraphics[scale=0.7]{charts/en_corr_n_eq_p_err.PNG}
+\includegraphics[scale=0.7]{charts/en_corr_n_eq_p_thetas.PNG}
+\captionof*{figure}{Elastic Net, $n=p$ correlated data set}
+
+\includegraphics[scale=0.7]{charts/en_corr_n_gt_p_err.PNG}
+\includegraphics[scale=0.7]{charts/en_corr_n_gt_p_thetas.PNG}
+\captionof*{figure}{Elastic Net, $n>p$ correlated data set}
+
+% Elastic Net
+\includegraphics[scale=0.7]{charts/bgd_ortho_n_lt_p_err.PNG}
+\includegraphics[scale=0.7]{charts/bgd_ortho_n_lt_p_thetas.PNG}
+\captionof*{figure}{LASSO with Batch Gradient Descent, $n<p$ orthogonal data set}
+
+\includegraphics[scale=0.7]{charts/bgd_ortho_n_eq_p_err.PNG}
+\includegraphics[scale=0.7]{charts/bgd_ortho_n_eq_p_thetas.PNG}
+\captionof*{figure}{LASSO with Batch Gradient Descent, $n=p$ orthogonal data set}
+
+\includegraphics[scale=0.7]{charts/bgd_ortho_n_gt_p_err.PNG}
+\includegraphics[scale=0.7]{charts/bgd_ortho_n_gt_p_thetas.PNG}
+\captionof*{figure}{LASSO with Batch Gradient Descent, $n>p$ orthogonal data set}
+
+\includegraphics[scale=0.7]{charts/bgd_corr_n_lt_p_err.PNG}
+\includegraphics[scale=0.7]{charts/bgd_corr_n_lt_p_thetas.PNG}
+\captionof*{figure}{LASSO with Batch Gradient Descent, $n<p$ correlated data set}
+
+\includegraphics[scale=0.7]{charts/bgd_corr_n_eq_p_err.PNG}
+\includegraphics[scale=0.7]{charts/bgd_corr_n_eq_p_thetas.PNG}
+\captionof*{figure}{LASSO with Batch Gradient Descent, $n=p$ correlated data set}
+
+\includegraphics[scale=0.7]{charts/bgd_corr_n_gt_p_err.PNG}
+\includegraphics[scale=0.7]{charts/bgd_corr_n_gt_p_thetas.PNG}
+\captionof*{figure}{LASSO with Batch Gradient Descent, $n>p$ correlated data set}
+\end{center}
 
 \end{document}
 
