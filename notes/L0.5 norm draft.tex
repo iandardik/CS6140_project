@@ -1,0 +1,90 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+\title{Draft}
+\author{Heeru Shrichand}
+\date{April 2021}
+
+\begin{document}
+
+
+
+\section{L0.5 for Section 3.5}
+
+For the penalty term in the optimization problem, we choose q = 0.5 i.e., 0$<$q$<$1
+\newline
+
+$\hat{\theta}_j$ = argmin$_{\theta} {( \frac{1}{2}  \sum_{i=1}^{N}[Y_i - \sum_{k=1}^{p} X_{i_k}\theta_k]^2  + \lambda \sum_{k=1}^p \sqrt{|\theta_k|}])}$
+\newline
+
+
+The math is very similar to the one for LASSO as shown above(Section 3.2). So, we have left the details to the appendix. 
+\newline
+
+
+    $\theta_j = \frac{sign(T).(|T| - \frac{\lambda}{2\sqrt{\theta_j}})}{N-1}$
+\newline
+
+Where, 
+A = N-1 ; B = $\frac{\lambda}{2\sqrt{\theta_j}}$
+\newline
+
+As seen here, when 0$<$q$<$1, the solution is in terms of itself. The solution here is non-trivial or non-convex. This solution is in our desired form of Pathwise Coordinate Descent. We have left the implementation as a future scope of the project.  
+
+\section{L0.5 for Appendix}
+For the penalty term in the optimization problem, we choose q = 0.5 i.e., 0$<$q$<$1
+\newline
+
+$\hat{\theta}_j$ = argmin$_{\theta} {( \frac{1}{2}  \sum_{i=1}^{N}[Y_i - \sum_{k=1}^{p} X_{i_k}\theta_k]^2  + \lambda \sum_{k=1}^p \sqrt{|\theta_k|}])}$
+\newline
+
+We consider the tuning parameter $\lambda\geq$0. Now, we consider the above optimization problem as 'O' and take its derivative with respect to $\theta_j$ to find the stationary points. 
+\newline
+
+$\frac{\partial O}{\partial \theta_{\rlap{$\scriptscriptstyle j$}}} = - {\sum}_{i=1}^{N} \; x_i{_j}(Y_i - x_i{_j}\theta_j - {\sum}_{k\neq j}^{p} x_i{_j}\theta_j) + \frac{\lambda sign(\theta_j)}{2 \sqrt{|\theta_j|}}$
+\newline
+
+$\frac{\partial O}{\partial \theta_{\rlap{$\scriptscriptstyle j$}}} = {\sum}_{i=1}^{N} \; x_i{_j}(Y_i - {\sum}_{k\neq j}^{p} x_i{_j}\theta_j) - {\sum}_{i+1}^{N} x_i{_j}^2\theta_j + \frac{\lambda sign(\theta_j)}{2 \sqrt{|\theta_j|}}$
+\newline
+
+Now, since our data is standardised, 
+\newline
+
+${\sum}_{i+1}^{N} x_i{_j}^2$ = N - 1
+\newline
+
+Setting the derivative to 0. 
+
+\newline
+
+${\sum}_{i=1}^{N} \; x_i{_j}(Y_i - x_i{_j}\theta_j) = (N-1)\theta_j + \frac{\lambda sign(\theta_j)}{2 \sqrt{|\theta_j|}}$
+T = ${\sum}_{i=1}^{N} \; x_i{_j}(Y_i - x_i{_j}\theta_j)$
+\newline
+
+As described before for LASSO, we can divide this into a 2-case argument and parameterize it in terms of A and B for implementing PCD. 
+\newline
+The 2-case argument is:
+\newline
+
+1. T $\geq$ $ \frac{\lambda }{2 \sqrt{|\theta_j|}}$
+\newline
+
+2. $\theta_j$ $\geq$ 0 if T $\geq$ 0 else $\theta_j $$< $ 0 if T $<$ 0
+\newline
+
+Finally, we can write our solution as:
+\newline
+
+$\theta_j = \frac{sign(T)(|T|- \frac{\lambda}{2\sqrt{|\theta_j|}})}{N-1}
+$
+\newline
+
+Where, 
+\newline
+
+A = N-1 ; B = $\frac{\lambda}{2\sqrt{\theta_j}}$
+\newline
+
+As seen here, when 0$<$q$<$1, the solution is in terms of itself. The solution here is non-trivial or non-convex. This solution is in our desired form of Pathwise Coordinate Descent. We have left the implementation as a future scope of the project.  
+
+\end{document}
