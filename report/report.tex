@@ -6,6 +6,7 @@
 \usepackage{amsfonts}
 \usepackage{amsmath}
 \usepackage[shortlabels]{enumitem}
+\usepackage[font=small,labelfont=bf]{caption}
 \usepackage{graphicx}
 \usepackage{listings}
 \lstset{
@@ -119,20 +120,46 @@ Ridge Regularization has a closed form analytical solution so it does not requir
 With parameterization $\pcd(N-1+2\lambda,0)$.  Notice that the soft-thresholding parameter is zero; this implies that \textit{no} soft-thresholding will be applied for Ridge, regardless of the parameter $\lambda$.  This explains why Ridge tends to shrink parameter values but doesn't drive them towards zero.  
 
 \subsection{Custom Shrinkage Methods}
-We have found above that LASSO uses $\lambda$ exclusively for linear shrinkage and soft-thresholding, while Ridge uses $\lambda$ exclusively for inverse shrinkage.  We propose three ``custom" ideas for changing and combining the shrinkage types in the context of PCD:
+We have found above that LASSO uses $\lambda$ exclusively for linear shrinkage and soft-thresholding, while Ridge uses $\lambda$ exclusively for inverse shrinkage.  The Elastic Net implicitly combines both shrinkage techniques using two tuning parameters; here we propose three ``custom" ideas for combining the shrinkage types using a single tuning parameter.  Our hope is that using a single tuning parameter makes it easier to find the optimal bias-variance tradeoff using cross-validation.  These custom ideas, inspired by Nearest Shrunken Centroids, apply soft-thresholding to the Ridge solution in the form: $\pcd(N-1 + 2\lambda, STP(\lambda))$, where $STP$ is the soft-thresholding penalty function.  The three custom ideas we will explore are:
+\begin{enumerate}
+	\item Ridge with Soft-Thresholding: $\pcd(N-1 + 2\lambda, \lambda)$
+	\item Ridge with Quadratic Soft-Thresholding: $\pcd(N-1 + 2\lambda, \lambda^2)$
+	\item Ridge with Exponential Soft-Thresholding: $\pcd(N-1 + 2\lambda, e^\lambda-1)$
+\end{enumerate}
 
-\subsubsection{Ridge with Soft-Thresholding}
-This customization, inspired by Nearest Shrunken Centroids, applies soft-thresholding to the Ridge solution.  This yields the parameterization $\pcd(N-1 + 2\lambda, \gamma)$, where the tuning parameter $\gamma$ governs the degree of soft-thresholding.  We found that cross-validation does not perform well for selecting a good $\lambda, \gamma$ pair so we instead consider the case where $\gamma=\lambda$, yielding $\pcd(N-1 + 2\lambda, \lambda)$.  
+\section{Experimental Design}
+In order to compare each regularization technique, we generated two data sets on which we trained and tested our suite of algorithms.  Our models include 27 individual parameters, 26 of which are continuous and one of which is categorical (month).  The first model includes four orthogonal design variables:
+	$$m_{ortho}(X) = 2X_1 + 3X_7^2 + 4X_8 + 2X_{37} + \epsilon_{ortho}$$
 
-\subsubsection{Ridge with Quadratic Soft-Thresholding}
-This idea is similar to the previous, except we vary the soft-thresholding quadratically with respect to the tuning parameter $\lambda$: $\pcd(N-1 + 2\lambda, \lambda^2)$.  
+Where $\epsilon_{ortho} \sim \mathcal{N}(0,4)$.  Our second model includes two design variables that are each correlated with two parameters:
+	$$m_{corr}(X) = 2X_1^3I_{Dec}(X_{26}) + 3X_{23}X_{24} + \epsilon_{corr}$$
 
-\subsubsection{Ridge with Exponential Soft-Thresholding}
-This idea is similar to the previous two, except we vary the soft-thresholding exponentially with respect to the tuning parameter $\lambda$: $\pcd(N-1 + 2\lambda, e^\lambda-1)$.  
+Where $\epsilon_{corr} \sim \mathcal{N}(0,1)$, and the indicator $I_{Dec}$ is one if the given argument is ``Dec" and zero otherwise.  For both data sets we generated four sets of samples:
+\begin{enumerate}
+	\item ``$n<p$": a training data set where the number of samples is smaller than the number of parameters.  We chose 20 samples.  
+	\item ``$n=p$": a training data set where the number of samples is approximately equal to the number of parameters  We chose 40 samples even though we have 38 parameters.  We use 5-fold cross-valdiation in which we require the number of samples to be divisble by 5; hence the choice of 40 samples.  
+	\item ``$n>p$": a training data set where the number of samples exceeds the number of parameters.  We chose 80 samples; we purposely chose a number of samples that exceeds the number of parameters, but is still relatively small.  
+	\item ``Test": a testing data set with a large number of samples for estimating the Mean Squared Error (MSE) of the fitted model.  We chose 10,000 samples.  
+\end{enumerate}
+
+For each data set, we trained each algorithm using a design matrix that is linear in each of the 26 continuous variables, and included 12 extra indicator variables for the categorical month variable.  We chose optimal tuning parameters for each algorithm using 5-fold cross-validation and then computed the test MSE on the ``Test" data set.  Our results are included in the following section.  
+
 
 \section{Results}
-\includegraphics[scale=0.6]{ortho.PNG} \\
-\includegraphics[scale=0.6]{corr.PNG}
+We have summarized the results of our experiment in the figures below.  In addition to the Test MSE and parameters that each model selected, we have included the number of correct and incorrect parameter selections, as well as a comparison of each algorithm to the sklearn library implementation for LASSO.  The ``MSE Diff" column subtracts each algorithm's MSE from the library MSE; the ``\# Correct Diff" column subtracts the number of correct paramters for each algorithm from the number of correct parameters that the library predicts; the ``\# Incorrect Diff" column subtracts the number of incorrect paramters for each algorithm from the number of incorrect parameters that the library predicts.  Judging by lowest MSE, there is no clear algorithm that emerges as the best.  All algorithms perform very similarly in the correlated data set, however Ridge with Soft-Thresholding does perform best for ``$n<p$", the library performs best for ``$n=p$", and Ridge with Soft-Thresholding is tied with Ridge with Quadratic Soft-Thresholding for best for ``$n>p$".  Judging by subset selection, LASSO with Batch Gradient Descent clearly performs the worst in each case; this algorithm does not inherently perform subset selection so this is expected.  Disregarding Gradient Descent, our implementations mostly perform better at subset selection than the library.  Ridge with Exponential Soft-Thresholding performs the best overall, only misclassifying a parameter in one trial and always choosing a better parameter subset than the library.  
+
+\begin{center}
+\includegraphics[scale=0.7]{ortho.PNG}
+\captionof{figure}{Orthogonal Dataset Results}
+\end{center}
+
+\begin{center}
+\includegraphics[scale=0.7]{corr.PNG}
+\captionof{figure}{Correlated Dataset Results}
+\end{center}
+
+\section{Discussion}
+
 
 \begin{thebibliography}{9}
 \bibitem{ht} 
