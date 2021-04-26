@@ -112,7 +112,7 @@ Finally, it is clear that the parameterization for LASSO is $\pcd(N-1,\lambda)$.
 The Elastic Net uses the tuning parameter $\alpha \in [0,1]$ to compromise between Ridge and Lasso penalization.  Ridge penalizes the L2 norm, so Elastic Net solves the following optimization problem:
 	$$\thh_j = \argmin\limits_{\theta_j} \frac{1}{2} \sum\limits_{i=1}^N \left(Y_i - \sum\limits_{k=1}^px_{ik}\theta_k \right)^2 + \lambda \sum\limits_{k=1}^p \left(\alpha\theta_k^2 + (1-\alpha)|\theta_k| \right)$$
 
-This math is very similar to LASSO above so we have left the details to the appendix.  Our final solution is:
+This math is very similar to LASSO above so we have left the details to section \ref{enderiv}.  Our final solution is:
 	$$\theta_j = S\left(\sum\limits_{i=1}^N X_{ij}(Y_i - \sum\limits_{k \ne j}^p X_{ik}\theta_k), B\right)/A$$
 
 Where $A=(N-1)+2\lambda\alpha$, and $B=\lambda(1-\alpha)$.  This equation is already in our desired form, and hence the parameterization is $\pcd(N-1+2\lambda\alpha,\lambda(1-\alpha))$.  
@@ -184,18 +184,46 @@ Finally, it is worth noting that implementing the algorithms--particularly PCD--
 
 \begin{thebibliography}{9}
 \bibitem{ht}
-Trevor Hastie, Robert Tibshirani, and Jerome Friedman,
-The Elements of Statistical Learning 2nd Edition
+Trevor Hastie, R. T. (2009). The Elements of Statistical Learning: Data Mining, Inference and Prediction. Springer, New York, NY.
 
 \bibitem{tib}
-Tibshirani's paper
+Robert Tibshirani (1996).  Journal of the Royal Statistical Society.  Regression Shrinkage and Selection via the Lasso. 
+
 \end{thebibliography}
 
 \section{Appendix}
 
 \subsection{Github Repository}
+\begin{verbatim}
+https://github.com/iandardik/CS6140_project
+\end{verbatim}
+\begin{itemize}
+	\item Algorithms, testing, and charts: pathwise\_cd\_final.ipynb
+	\item Data set generation: dataset\_generation.ipynb
+	\item Testing with sklearn library implementation: Lasso with PCD.ipynb
+	\item Data sets (orthogonal and correlated): data/
+	\item Background math: notes/
+\end{itemize}
 
 \subsection{Elastic Net Derivation}
+\label{enderiv}
+The Elastic Net uses the tuning parameter $\alpha \in [0,1]$ to compromise between Ridge and Lasso penalization.  It solves the following optimization problem:
+	$$\thh_j = \argmin\limits_{\theta_j} \frac{1}{2} \sum\limits_{i=1}^N \left(Y_i - \sum\limits_{k=1}^px_{ik}\theta_k \right)^2 + \lambda \sum\limits_{k=1}^p\left(\alpha\theta_k^2 + (1-\alpha)|\theta_k| \right)$$
+
+Let $J$ be our objective function.  We can solve for $\theta_j$ by finding the stationary points of $J$:
+\begin{equation}\begin{split}
+	\frac{\partial J}{\partial \theta_j}
+		& = -\sum\limits_{i=1}^N X_{ij}(Y_i - \sum\limits_{k \ne j}^p X_{ik}\theta_k) +(N-1)\theta_j + 2\lambda\alpha\theta_j + \lambda(1-\alpha)\sgn(\theta_j) \\
+\end{split}\end{equation}
+
+Set $\frac{\partial J}{\partial \theta_j}=0$ and, for convenience, let $Q = \sum\limits_{i=1}^N X_{ij}(Y_i - \sum\limits_{k \ne j}^p X_{ik}\theta_k)$, $A=(N-1)+2\lambda\alpha$, and $B=\lambda(1-\alpha)$ and and we get:
+	$$A\theta_j + B\sgn(\theta_j) = Q$$
+
+Notice that since $A \geq 0$ and $B \geq 0$, we can use the same two case logic from the LASSO section, yielding the solution:
+	$$\theta_j = \frac{\sgn(Q)(|Q|-B)_+}{A}$$
+
+Our final solution is:
+	$$\theta_j = S\left(\sum\limits_{i=1}^N X_{ij}(Y_i - \sum\limits_{k \ne j}^p X_{ik}\theta_k), B\right)/A$$
 
 \subsection{$L\frac{1}{2}$ Norm Derivation}
 
@@ -352,6 +380,21 @@ Tibshirani's paper
 \includegraphics[scale=0.7]{charts/bgd_corr_n_gt_p_thetas.PNG}
 \captionof{figure}{LASSO with Batch Gradient Descent, $n>p$ correlated data set}
 \end{center}
+
+\section{Statement of Contribution}
+Ian Dardik
+\begin{itemize}
+	\item Theory for LASSO, Elastic Net, Ridge (including all custom methods)
+	\item Implementation of BGD (from homework), PCD, and k-fold cross validation.  
+	\item Generating and compiling results, charts, and tables
+	\item Worked on data generation and generated our data sets, also worked on properly using sklearn LASSO
+\end{itemize}
+
+Heeru Ahuja
+\begin{itemize}
+	\item Theory for $L\frac{1}{2}$ regularization
+	\item Foundation for implementing data generation and using sklearn LASSO
+\end{itemize}
 
 \end{document}
 
