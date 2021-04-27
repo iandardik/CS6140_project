@@ -132,6 +132,28 @@ We have found above that LASSO uses $\lambda$ exclusively for linear shrinkage a
 	\item Ridge with Exponential Soft-Thresholding: $\pcd(N-1 + 2\lambda, e^\lambda-1)$
 \end{enumerate}
 
+\subsubsection{L0.5 Norm}
+
+For the penalty term in the optimization problem, we choose q = 0.5 i.e., 0$<$q$<$1
+\newline
+
+$\hat{\theta}_j$ = argmin$_{\theta} {( \frac{1}{2}  \sum_{i=1}^{N}[Y_i - \sum_{k=1}^{p} X_{i_k}\theta_k]^2  + \lambda \sum_{k=1}^p \sqrt{|\theta_k|}])}$
+\newline
+
+
+The math is very similar to the one for LASSO as shown above(Section 2.2.2). So, we have left the details to the appendix. 
+\newline
+
+
+    $\theta_j = \frac{sign(T).(|T| - \frac{\lambda}{2\sqrt{\theta_j}})}{N-1}$
+\newline
+
+Where, 
+A = N-1 ; B = $\frac{\lambda}{2\sqrt{\theta_j}}$
+\newline
+
+As seen here, when 0$<$q$<$1, the solution is in terms of itself. The solution here is non-trivial or non-convex. This solution is in our desired form of Pathwise Coordinate Descent. We have left the implementation as a future scope of the project.
+
 \subsection{Experimental Design}
 In order to compare each regularization technique, we generated two data sets on which we trained and tested our suite of algorithms.  Our models include 27 individual parameters, where $X_0 ... X_{25}$ are continuous and $X_{26}$ is a categorical variable representing a month of the year.  The first model includes four orthogonal design variables:
 	$$m_{ortho}(X) = 2X_1 + 3X_7^2 + 4X_8 + 2X_{37} + \epsilon_{ortho}$$
@@ -186,6 +208,11 @@ Finally, it is worth noting that implementing the algorithms--particularly PCD--
 \bibitem{ht}
 Trevor Hastie, R. T. (2009). The Elements of Statistical Learning: Data Mining, Inference and Prediction. Springer, New York, NY.
 
+\bibitem{ht}
+Trevor Hastie, R. T. (2015)..  Statistical Learning with Sparsity: The Lasso and Generalizations.
+Chapman and Hall/CRC.
+
+
 \bibitem{tib}
 Robert Tibshirani (1996).  Journal of the Royal Statistical Society.  Regression Shrinkage and Selection via the Lasso. 
 
@@ -200,7 +227,7 @@ https://github.com/iandardik/CS6140_project
 \begin{itemize}
 	\item Algorithms, testing, and charts: pathwise\_cd\_final.ipynb
 	\item Data set generation: dataset\_generation.ipynb
-	\item Testing with sklearn library implementation: Lasso with PCD.ipynb
+	\item Testing with sklearn library implementation: Lasso with PCD.ipynb, Elastic Net with PCD.ipynb
 	\item Data sets (orthogonal and correlated): data/
 	\item Background math: notes/
 \end{itemize}
@@ -226,6 +253,70 @@ Our final solution is:
 	$$\theta_j = S\left(\sum\limits_{i=1}^N X_{ij}(Y_i - \sum\limits_{k \ne j}^p X_{ik}\theta_k), B\right)/A$$
 
 \subsection{$L\frac{1}{2}$ Norm Derivation}
+
+For the penalty term in the optimization problem, we choose q = 0.5 i.e., 0$<$q$<$1
+\newline
+\begin{equation}
+            \hat{\theta}_j = argmin_{\theta} {( \frac{1}{2}  \sum_{i=1}^{N}[Y_i - \sum_{k=1}^{p} X_{i_k}\theta_k]^2  + \lambda \sum_{k=1}^p \sqrt{|\theta_k|}])}
+\end{equation}
+
+\newline
+
+We consider the tuning parameter $\lambda\geq$0. Now, we consider the above optimization problem as 'O' and take its derivative with respect to $\theta_j$ to find the stationary points. 
+\newline
+
+
+$\frac{\partial O}{\partial \theta_{\rlap{$\scriptscriptstyle j$}}} = - {\sum}_{i=1}^{N} \; x_i{_j}(Y_i - x_i{_j}\theta_j - {\sum}_{k\neq j}^{p} x_i{_j}\theta_j) + \frac{\lambda sign(\theta_j)}{2 \sqrt{|\theta_j|}}$
+\newline
+
+$\frac{\partial O}{\partial \theta_{\rlap{$\scriptscriptstyle j$}}} = {\sum}_{i=1}^{N} \; x_i{_j}(Y_i - {\sum}_{k\neq j}^{p} x_i{_j}\theta_j) - {\sum}_{i+1}^{N} x_i{_j}^2\theta_j + \frac{\lambda sign(\theta_j)}{2 \sqrt{|\theta_j|}}$
+\newline
+
+Now, since our data is standardised, 
+\newline
+\begin{equation}
+    {\sum}_{i+1}^{N} x_i{_j}^2 = N-1
+\end{equation}
+
+\newline
+
+Setting the derivative to 0. 
+
+\newline
+\begin{equation}
+   {\sum}_{i=1}^{N} \; x_i{_j}(Y_i - x_i{_j}\theta_j) = (N-1)\theta_j + \frac{\lambda sign(\theta_j)}{2 \sqrt{|\theta_j|}}
+\end{equation}
+\newline
+
+\begin{equation}
+    T = {\sum}_{i=1}^{N} \; x_i{_j}(Y_i - x_i{_j}\theta_j)
+\end{equation}
+\newline
+
+As described before for LASSO, we can divide this into a 2-case argument and parameterize it in terms of A and B for implementing PCD. 
+\newline
+The 2-case argument is:
+\newline
+
+1. T $\geq$ $ \frac{\lambda }{2 \sqrt{|\theta_j|}}$
+\newline
+
+2. $\theta_j$ $\geq$ 0 if T $\geq$ 0 else $\theta_j $$< $ 0 if T $<$ 0
+\newline
+
+Finally, we can write our solution as:
+\newline
+\begin{equation}
+  \theta_j = \frac{sign(T)(|T|- \frac{\lambda}{2\sqrt{|\theta_j|}})}{N-1}
+\end{equation}
+
+\newline
+Where, 
+\newline
+A = N-1 ; B = $\frac{\lambda}{2\sqrt{\theta_j}}$
+\newline
+
+As seen here, when 0$<$q$<$1, the solution is in terms of itself. The solution here is non-trivial or non-convex. This solution is in our desired form of Pathwise Coordinate Descent. We have left the implementation as a future scope of the project.
 
 \subsection{Cross-Validation Training Results}
 \label{cvtr}
@@ -393,7 +484,9 @@ Ian Dardik
 Heeru Ahuja
 \begin{itemize}
 	\item Theory for $L\frac{1}{2}$ regularization
-	\item Foundation for implementing data generation and using sklearn LASSO
+	\item Foundation for implementing data generation and using sklearn LASSO and Elastic Net
+	\item Implementation of cyclic coordinate descent with LASSO-exempted due to redundancy
+	\item Compilation of documentation for Project Proposal,Report and Presentation
 \end{itemize}
 
 \end{document}
