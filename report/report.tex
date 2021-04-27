@@ -60,7 +60,7 @@ Many of the regularization techniques we discuss do not have a closed analytical
 For the remainder of this paper we assume that all data $X$ and responses $Y$ are standardized.  
 
 \subsection{Gradient Descent}
-Gradient Descent algorithms work by moving in the direction that the gradient of $\theta$ points, with distance scaled by a learning rate parameter $\alpha$.  The algorithm continuously updates it value for the parameter vector $\theta$ until convergence.  Gradients point towards local optima, so we clearly need to use convex objective functions to arrive at a gobally optimal solution in Gradient Descent.  Fortunately, computing the gradient of objective functions listed above is straightforward which makes Gradient Descent fairly simple to implement.  Notice that Gradient Descent works by computing the gradient; it does not itself solve an optimization problem per se; since the algorithm is only dependent on the gradient of the objective function, we can parameterize it based on the gradient.  Therefore we end up with a core algorithm the form: $\text{GRADIENT\_DESCENT}(\nabla\theta)$
+Gradient Descent algorithms work by moving in the direction that the gradient of $\theta$ points, with distance scaled by a learning rate parameter $\alpha$.  The algorithm continuously updates it value for the parameter vector $\theta$ until convergence.  Gradients point towards local optima, so we clearly need to use convex objective functions to arrive at a gobally optimal solution in Gradient Descent.  Fortunately, computing the gradient of objective functions listed above is straightforward which makes Gradient Descent fairly simple to implement.  Since the algorithm is only dependent on the gradient of the objective function, we can parameterize it based on the gradient.  Therefore we end up with a core algorithm the form: $\text{GRADIENT\_DESCENT}(\nabla\theta)$
 
 \subsection{Pathwise Coordinate Descent}
 While Gradient Descent operates on the entire parameter vector at once, Pathwise Coordinate Descent (PCD) concentrates on each parameter individually.  Pathwise Coordinate Descent considers each parameter $\theta_j$ as its own optimization problem\cite{ht}:
@@ -69,7 +69,7 @@ While Gradient Descent operates on the entire parameter vector at once, Pathwise
 In each iteration of the PCD algorithm, we update each $\theta_j$ to be the solution to the individual optimization problem.  
 
 \subsubsection{Parameterizing the PCD Algorithm}
-Pathwise Coordinate Descent is parameterized by the objective function $J$ that it solves for each $\theta_j$.  However, for the universe of objective functions we consider in this paper, we can parameterize the PCD algorithm by just two nonnegative parameters we call $A$ and $B$.  For each objective function we consider below, we will show that the solution to optimizing each $\theta_j$ takes the form:
+Pathwise Coordinate Descent is parameterized by the objective function $J$ that it solves for each $\theta_j$.  However, for the universe of objective functions we consider in this paper, we can parameterize the PCD algorithm using just two nonnegative parameters $A$ and $B$.  For each objective function we consider below, we will show that the solution to optimizing each $\theta_j$ takes the form:
 	$$\theta_j = S\left(\sum\limits_{i=1}^N X_{ij}(Y_i - \sum\limits_{k \ne j}^p X_{ik}\theta_k), B\right)/A$$
 
 Where we define\cite{ht} $S(t,B) = \sgn(t)(|t|-B)_+$, and $()_+$ is the soft-thresholding operator.  It follows that each algorithm reduces to the following parameterized form $\pcd(A, B)$.  In the following sections we will show how each of the objective functions we consider fit into this parameterization.  
@@ -131,6 +131,28 @@ We have found above that LASSO uses $\lambda$ exclusively for linear shrinkage a
 	\item Ridge with Quadratic Soft-Thresholding: $\pcd(N-1 + 2\lambda, \lambda^2)$
 	\item Ridge with Exponential Soft-Thresholding: $\pcd(N-1 + 2\lambda, e^\lambda-1)$
 \end{enumerate}
+
+\subsubsection{L0.5 Norm} 
+
+For the penalty term in the optimization problem, we choose q = 0.5 i.e., 0$<$q$<$1
+
+\begin{equation}
+    \hat{\theta}_j = argmin_{\theta} {( \frac{1}{2}  \sum_{i=1}^{N}[Y_i - \sum_{k=1}^{p} X_{i_k}\theta_k]^2  + \lambda \sum_{k=1}^p \sqrt{|\theta_k|}])}
+\end{equation}
+
+
+
+The math is very similar to the one for LASSO as shown above(Section 2.2.2). So, we have left the details to the appendix. 
+
+\begin{equation}
+        \theta_j = \frac{sign(T).(|T| - \frac{\lambda}{2\sqrt{\theta_j}})}{N-1}
+\end{equation}
+
+Where, 
+A = N-1 ; B = $\frac{\lambda}{2\sqrt{\theta_j}}$
+
+As seen here, when 0$<$q$<$1, the solution is in terms of itself. The solution here is non-trivial or non-convex. This solution is in our desired form of Pathwise Coordinate Descent. We have left the implementation as a future scope of the project.
+
 
 \subsection{Experimental Design}
 In order to compare each regularization technique, we generated two data sets on which we trained and tested our suite of algorithms.  Our models include 27 individual parameters, where $X_0 ... X_{25}$ are continuous and $X_{26}$ is a categorical variable representing a month of the year.  The first model includes four orthogonal design variables:
@@ -226,6 +248,49 @@ Our final solution is:
 	$$\theta_j = S\left(\sum\limits_{i=1}^N X_{ij}(Y_i - \sum\limits_{k \ne j}^p X_{ik}\theta_k), B\right)/A$$
 
 \subsection{$L\frac{1}{2}$ Norm Derivation}
+For the penalty term in the optimization problem, we choose q = 0.5 i.e., 0$<$q$<$1
+
+\begin{equation}
+\hat{\theta}_j = argmin_{\theta} {( \frac{1}{2} \sum_{i=1}^{N}[Y_i - \sum_{k=1}^{p} X_{i_k}\theta_k]^2 + \lambda \sum_{k=1}^p \sqrt{|\theta_k|}])}
+\end{equation}
+
+We consider the tuning parameter $\lambda\geq$0. Now, we consider the above optimization problem as 'O' and take its derivative with respect to $\theta_j$ to find the stationary points. 
+\begin{equation}
+\frac{\partial O}{\partial \theta_j} = - {\sum}_{i=1}^{N} \; x_i{_j}(Y_i - x_i{_j}\theta_j - {\sum}_{k\neq j}^{p} x_i{_j}\theta_j) + \frac{\lambda sign(\theta_j)}{2 \sqrt{|\theta_j|}}
+\end{equation}
+\begin{equation}
+\frac{\partial O}{\partial \theta_j} = {\sum}_{i=1}^{N} \; x_i{_j}(Y_i - {\sum}_{k\neq j}^{p} x_i{_j}\theta_j) - {\sum}_{i+1}^{N} x_i{_j}^2\theta_j + \frac{\lambda sign(\theta_j)}{2 \sqrt{|\theta_j|}}
+\end{equation}
+Now, since our data is standardised, 
+
+\begin{equation}
+{\sum}_{i+1}^{N} x_i{_j}^2 = N-1
+\end{equation}
+
+Setting the derivative to 0. 
+
+\begin{equation}
+{\sum}_{i=1}^{N} \; x_i{_j}(Y_i - x_i{_j}\theta_j) = (N-1)\theta_j + \frac{\lambda sign(\theta_j)}{2 \sqrt{|\theta_j|}}
+\end{equation}
+\begin{equation}
+T = {\sum}_{i=1}^{N} \; x_i{_j}(Y_i - x_i{_j}\theta_j)
+\end{equation}
+As described before for LASSO, we can divide this into a 2-case argument and parameterize it in terms of A and B for implementing PCD. 
+
+The 2-case argument is:
+1. T $\geq$ $ \frac{\lambda }{2 \sqrt{|\theta_j|}}$
+2. $\theta_j$ $\geq$ 0 if T $\geq$ 0 else $\theta_j $$< $ 0 if T $<$ 0
+Finally, we can write our solution as:
+
+\begin{equation}
+\theta_j = \frac{sign(T)(|T|- \frac{\lambda}{2\sqrt{|\theta_j|}})}{N-1}
+\end{equation}
+
+Where, 
+
+A = N-1 ; B = $\frac{\lambda}{2\sqrt{\theta_j}}$
+As seen here, when 0$<$q$<$1, the solution is in terms of itself. The solution here is non-trivial or non-convex. This solution is in our desired form of Pathwise Coordinate Descent. We have left the implementation as a future scope of the project.
+
 
 \subsection{Cross-Validation Training Results}
 \label{cvtr}
@@ -394,6 +459,9 @@ Heeru Ahuja
 \begin{itemize}
 	\item Theory for $L\frac{1}{2}$ regularization
 	\item Foundation for implementing data generation and using sklearn LASSO
+	\item Foundation for implementing data generation and using sklearn LASSO and Elastic Net
+	\item Implementation of cyclic coordinate descent with LASSO-exempted due to redundancy
+	\item Compilation of documentation for Project Proposal,Report and Presentation
 \end{itemize}
 
 \end{document}
