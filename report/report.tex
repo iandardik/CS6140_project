@@ -236,7 +236,7 @@ Let $J$ be our objective function.  We can solve for $\theta_j$ by finding the s
 		& = -\sum\limits_{i=1}^N X_{ij}(Y_i - \sum\limits_{k \ne j}^p X_{ik}\theta_k) +(N-1)\theta_j + 2\lambda\alpha\theta_j + \lambda(1-\alpha)\sgn(\theta_j) \\
 \end{split}\end{equation}
 
-Set $\frac{\partial J}{\partial \theta_j}=0$ and, for convenience, let $Q = \sum\limits_{i=1}^N X_{ij}(Y_i - \sum\limits_{k \ne j}^p X_{ik}\theta_k)$, $A=(N-1)+2\lambda\alpha$, and $B=\lambda(1-\alpha)$ and and we get:
+Set $\frac{\partial J}{\partial \theta_j}=0$ and, for convenience, let $Q = \sum\limits_{i=1}^N X_{ij}(Y_i - \sum\limits_{k \ne j}^p X_{ik}\theta_k)$, $A=(N-1)+2\lambda\alpha$, and $B=\lambda(1-\alpha)$ and we get:
 	$$A\theta_j + B\sgn(\theta_j) = Q$$
 
 Notice that since $A \geq 0$ and $B \geq 0$, we can use the same two case logic from the LASSO section, yielding the solution:
